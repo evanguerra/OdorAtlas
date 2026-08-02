@@ -1,0 +1,155 @@
+// Narrative structure: this site is an "interactive slideshow" (Segel &
+// Heer) — a fixed sequence of scenes (0 → 1 → 2 → 3) that the reader moves
+// through with Next/Back, but where each individual scene is fully
+// explorable (hover, click, slider) rather than locked down. Each scene
+// leads with a stated takeaway before inviting exploration, and the Next
+// button previews the upcoming scene's title so the path always reads as
+// one continuous, guided story rather than a menu of unrelated views.
+// Scene 3 also opens an optional drill-down interlude (Scene 4) for
+// whichever single molecule the reader clicks on — a short branch off the
+// main line that always returns to where the reader left off.
+import scene0 from './scene0.js';
+import scene1 from './scene1.js';
+import scene2 from './scene2.js';
+import scene3 from './scene3.js';
+import scene4 from './scene4.js';
+
+const primaryScenes = [scene0, scene1, scene2, scene3];
+
+const root = document.getElementById('scene-root');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const progressEl = document.getElementById('scene-progress');
+const dotsEl = document.getElementById('nav-dots');
+
+// --- Parameters -----------------------------------------------------------
+// These are the state variables that control which scene is shown and how.
+// Every scene render is a pure function of this state.
+let current = 0;            // index into primaryScenes (0..2)
+let activeScene = null;     // the currently mounted scene module
+let mode = 'primary';       // 'primary' (scenes 1-3) or 'detail' (scene 4)
+let lastPrimaryIndex = 0;   // remembers where to return after a detail dive
+// ---------------------------------------------------------------------------
+
+function pad(n) {
+  return String(n).padStart(2, '0');
+}
+
+function buildDots() {
+  dotsEl.innerHTML = '';
+  primaryScenes.forEach(() => {
+    const dot = document.createElement('span');
+    dot.className = 'nav-dot';
+    dotsEl.appendChild(dot);
+  });
+}
+
+function updateDots() {
+  [...dotsEl.children].forEach((dot, i) => {
+    dot.classList.toggle('is-active', mode === 'primary' && i === current);
+  });
+}
+
+function destroyActive() {
+  if (activeScene && typeof activeScene.destroy === 'function') {
+    activeScene.destroy();
+  }
+  root.innerHTML = '';
+}
+
+function showErrorScene(err) {
+  console.error(`Scene "${activeScene && activeScene.id}" failed to initialize:`, err);
+  root.innerHTML = `
+    <div class="placeholder-scene">
+      <h2>Scene didn't load</h2>
+    </div>`;
+}
+
+function renderScene(index) {
+  destroyActive();
+  mode = 'primary';
+  current = index;
+  lastPrimaryIndex = index;
+  activeScene = primaryScenes[current];
+
+  try {
+    activeScene.init(root, { onNext: goNext, onPrev: goPrev, onSelectMolecule: goToDetail });
+  } catch (err) {
+    showErrorScene(err);
+  }
+
+  prevBtn.disabled = current === 0;
+  prevBtn.textContent = '← Back';
+  nextBtn.style.display = '';
+  if (current === primaryScenes.length - 1) {
+    nextBtn.textContent = 'Restart ↺';
+  } else {
+    const upNext = primaryScenes[current + 1];
+    nextBtn.textContent = `Next: ${upNext.shortTitle || 'Continue'} →`;
+  }
+  progressEl.textContent = `${pad(current + 1)} / ${pad(primaryScenes.length)}`;
+  dotsEl.style.display = '';
+  updateDots();
+}
+
+function renderDetail(molecule) {
+  destroyActive();
+  mode = 'detail';
+  activeScene = scene4;
+
+  try {
+    activeScene.init(root, { onBack: goBackToPrimary, molecule });
+  } catch (err) {
+    showErrorScene(err);
+  }
+
+  prevBtn.disabled = false;
+  prevBtn.textContent = 'Back to atlas';
+  nextBtn.style.display = 'none';
+  progressEl.textContent = molecule && molecule.name ? `Exploring · ${molecule.name}` : 'Exploring';
+  dotsEl.style.display = 'none';
+}
+
+function goToDetail(molecule) {
+  renderDetail(molecule);
+}
+
+function goBackToPrimary() {
+  renderScene(lastPrimaryIndex);
+}
+
+function goNext() {
+  if (mode === 'detail') {
+    goBackToPrimary();
+    return;
+  }
+  const nextIndex = (current + 1) % primaryScenes.length;
+  renderScene(nextIndex);
+}
+
+function goPrev() {
+  if (mode === 'detail') {
+    goBackToPrimary();
+    return;
+  }
+  if (current > 0) renderScene(current - 1);
+}
+
+// --- Triggers ---------------------------------------------------------------
+// UI events that change the parameters above and re-render accordingly.
+// Each scene also registers its own triggers (sliders, toggles, clicks) that
+// update scene-local parameters; scene3's onSelectMolecule callback is a
+// trigger that changes main.js's own `mode`/`current` parameters, driving a
+// transition into the scene4 detail view.
+prevBtn.addEventListener('click', goPrev);
+nextBtn.addEventListener('click', goNext);
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') goNext();
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'Escape' && mode === 'detail') goBackToPrimary();
+});
+// ---------------------------------------------------------------------------
+
+buildDots();
+renderScene(0);
