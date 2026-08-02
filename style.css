@@ -158,9 +158,6 @@ button { font-family: inherit; }
   flex-direction: column;
 }
 
-/* Top info bar: what the scene is about. The live "Reading" readout now
-   lives in the side control rail (see .scene__reading below), right next
-   to the legend/toggle/slider it's paired with. */
 .scene__intro {
   flex: 0 0 auto;
   padding: 22px 28px 20px;
@@ -231,9 +228,6 @@ button { font-family: inherit; }
   max-width: 62ch;
 }
 
-/* Message-first callout: states the scene's takeaway up front, before the
-   reader starts exploring the chart themselves — the hallmark of an
-   interactive-slideshow narrative (point first, exploration second). */
 .scene__takeaway {
   display: flex;
   gap: 8px;
@@ -601,13 +595,6 @@ button { font-family: inherit; }
   color: var(--accent-blue);
 }
 
-/* Shared annotation template — now rendered by d3.annotation
-   (annotationCalloutCircle) instead of hand-drawn SVG, but still used
-   identically by every scene so built-in (non-hover) callouts look and
-   behave the same throughout. Class names below are the ones the library
-   itself generates: .annotation-subject (the small ring on the data
-   point), .annotation-connector (line/elbow out to the note),
-   .annotation-note-bg / -title / -label (the callout box itself). */
 .annotation {
   pointer-events: none;
 }
@@ -683,7 +670,6 @@ button { font-family: inherit; }
   * { transition: none !important; animation: none !important; }
 }
 
-/* Intro / "how this works" scene */
 .intro-scene-wrap {
   position: relative;
   height: 100%;

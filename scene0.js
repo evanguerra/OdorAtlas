@@ -13,12 +13,11 @@ function buildDom(container) {
           <div class="intro-scene__eyebrow">Start here</div>
           <h1 class="intro-scene__title">Odor Space Atlas</h1>
           <p class="intro-scene__desc">
-            160 odor stimuli were rated by panelists across 146 descriptors
-            (like "floral," "sour," "musty"). This site walks through what
-            those ratings look like when reduced to a 2D map, how individual
-            descriptors shift with concentration, and how a handful of
-            molecules move through that space as they get stronger. It's a
-            short, four-part guided tour &mdash; each part builds on the last.
+            This visualization explores the Arctander dataset which contains160 odor stimuli were rated by
+            panelists across 146 descriptors for example "floral," "sour," or "musty". This visualization walks through
+            what those ratings look like when reduced to a 2D map, how individual descriptors shift with concentration,
+            and how a handful of molecules move through that space as they get stronger. It's a short,
+            four-part guided tour with each part building on the last.
           </p>
         </div>
 
@@ -33,35 +32,31 @@ function buildDom(container) {
             </p>
           </div>
           <div class="intro-card">
-            <p class="intro-card__label">The "Reading" box</p>
+            <p class="intro-card__label">The "Details" box</p>
             <p>
               At the top of every scene, this box tells you exactly what
               you're looking at. It updates live as you hover or click things
-              below &mdash; check it first if a chart looks unfamiliar.
+              below.
             </p>
           </div>
           <div class="intro-card">
             <p class="intro-card__label">Hover &amp; click</p>
             <p>
-              Points and bars are interactive: hover for a quick tooltip,
-              click to pin a selection. A dashed callout box also appears
-              automatically on each scene to flag the most notable data point.
+              Points and bars are interactive: hover or click them for more information.
             </p>
           </div>
           <div class="intro-card">
             <p class="intro-card__label">Low vs. high concentration</p>
             <p>
-              A few molecules were rated at two strengths &mdash; a
-              <strong>low</strong> and a <strong>high</strong> concentration
-              &mdash; because smell isn't fixed: the same molecule can read
+              A few molecules were rated at multiple concentrations. The same molecule can smell
               very differently depending on how much of it you're smelling.
             </p>
           </div>
           <div class="intro-card intro-card--wide">
             <p class="intro-card__label">Zooming into one molecule</p>
             <p>
-              In the third scene, clicking any molecule's line or its entry
-              in the legend opens a close-up look at that molecule alone.
+              In the third scene, clicking any molecule's line or its point
+              in the legend opens a drill-down look at that molecule.
               From there, use the <strong>Back to atlas</strong> link (or
               press <span class="intro-kbd">Esc</span>) to return to exactly
               where you left off.
@@ -75,10 +70,6 @@ function buildDom(container) {
   `;
 }
 
-// Decorative-only render of the same PCA layout Scene 01 uses later, faded
-// well into the background so it previews the shape of the data without
-// competing with the intro copy. No axes, no interaction, no tooltip —
-// this is atmosphere, not a chart.
 function renderBackground(container) {
   if (typeof d3 === 'undefined' || !bgData) return;
 
@@ -147,8 +138,6 @@ function init(container) {
       renderBackground(container);
     })
     .catch((err) => {
-      // Decorative layer only — if it fails to load, the intro scene still
-      // works fine without it, so just log and move on.
       console.error('Scene 0 background failed to load:', err);
     });
 
