@@ -179,7 +179,7 @@ function buildDom(container) {
             <p class="panel-block__label">Molecules</p>
             <div class="legend-list" id="s3-legend"></div>
             <p class="legend-note">
-              Click any molecule to open its
+              Click any point or arrow in the graph to open its
               full descriptor profile and slide through concentration.
             </p>
           </div>
@@ -269,14 +269,13 @@ function init(container, { onNext, onPrev, onSelectMolecule } = {}) {
 
   function buildLegend() {
     legendEl.innerHTML = molecules.map((m) => `
-      <div class="legend-swatch-row legend-swatch-row--clickable" data-cid="${m.cid}">
+      <div class="legend-swatch-row" data-cid="${m.cid}">
         <span class="legend-swatch" style="background:${m.color}"></span>
         <span>${m.name}</span>
       </div>
     `).join('');
 
     [...legendEl.children].forEach((row, i) => {
-      row.addEventListener('click', () => selectMolecule(molecules[i]));
       row.addEventListener('mouseenter', () => renderReadout(molecules[i]));
       row.addEventListener('mouseleave', () => {
         const selected = selectedCid ? molecules.find((m) => m.cid === selectedCid) : null;
