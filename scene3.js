@@ -274,14 +274,6 @@ function init(container, { onNext, onPrev, onSelectMolecule } = {}) {
         <span>${m.name}</span>
       </div>
     `).join('');
-
-    [...legendEl.children].forEach((row, i) => {
-      row.addEventListener('mouseenter', () => renderReadout(molecules[i]));
-      row.addEventListener('mouseleave', () => {
-        const selected = selectedCid ? molecules.find((m) => m.cid === selectedCid) : null;
-        renderReadout(selected);
-      });
-    });
   }
 
   function render() {
