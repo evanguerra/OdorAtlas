@@ -1,4 +1,4 @@
-import { drawAnnotation } from './annotation.js';
+import { drawAnnotation, pickAnnotationOffset } from './annotation.js';
 
 const DATA_URL = 'data/trajectories.json';
 const N_BARS_SHOWN = 20;
@@ -320,11 +320,30 @@ function init(container, { onBack, molecule: moleculeRef } = {}) {
     if (focus) {
       const bx = x(focus.descriptor) + x.bandwidth() / 2;
       const by = y(focus.value);
+
+      const referenceY = Math.min(24, innerH * 0.08);
+      const barTops = entries
+        .filter((e) => e.descriptor !== focus.descriptor)
+        .map((e) => ({
+          x: x(e.descriptor) + x.bandwidth() / 2,
+          y: y(e.value),
+          r: x.bandwidth() / 2,
+        }));
+      const offset = pickAnnotationOffset({
+        x: bx,
+        y: referenceY,
+        points: barTops,
+        innerW,
+        innerH,
+        width: 176,
+        lines: 2,
+      });
+
       drawAnnotation(gAnn, {
         x: bx,
         y: by,
-        dx: bx > innerW / 2 ? -184 : 16,
-        dy: -72,
+        dx: offset.dx,
+        dy: (referenceY + offset.dy) - by,
         title: 'Biggest mover',
         text: [
           focus.descriptor,
