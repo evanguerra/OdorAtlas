@@ -362,6 +362,11 @@ button { font-family: inherit; }
   color: var(--ink);
 }
 
+#s1-readout { min-height: 156px; }
+#s2-readout { min-height: 114px; }
+#s3-readout { min-height: 114px; }
+#s4-readout { min-height: 94px; }
+
 .readout__name {
   font-family: var(--font-body);
   font-weight: 600;

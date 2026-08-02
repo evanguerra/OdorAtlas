@@ -123,6 +123,7 @@ function init(container, { onNext, onPrev } = {}) {
   let stepIndex = 0;
   let selected = null;
   const fixedDescriptors = new Map();
+  const annotationOffsets = new Map();
 
   slider.addEventListener('input', () => {
     stepIndex = Number(slider.value);
@@ -313,28 +314,34 @@ function init(container, { onNext, onPrev } = {}) {
       const by = y(focus.value);
 
       const referenceY = Math.min(24, innerH * 0.08);
-      const barTops = entries
-        .filter((e) => e.descriptor !== focus.descriptor)
-        .map((e) => ({
-          x: x(e.descriptor) + x.bandwidth() / 2,
-          y: y(e.value),
-          r: x.bandwidth() / 2,
-        }));
-      const offset = pickAnnotationOffset({
-        x: bx,
-        y: referenceY,
-        points: barTops,
-        innerW,
-        innerH,
-        width: 176,
-        lines: 2,
-      });
+      const dimsKey = `${innerW}x${innerH}`;
+      let cached = annotationOffsets.get(molecule.name);
+      if (!cached || cached.dimsKey !== dimsKey || cached.descriptor !== focus.descriptor) {
+        const barTops = entries
+          .filter((e) => e.descriptor !== focus.descriptor)
+          .map((e) => ({
+            x: x(e.descriptor) + x.bandwidth() / 2,
+            y: y(e.value),
+            r: x.bandwidth() / 2,
+          }));
+        const offset = pickAnnotationOffset({
+          x: bx,
+          y: referenceY,
+          points: barTops,
+          innerW,
+          innerH,
+          width: 176,
+          lines: 2,
+        });
+        cached = { dimsKey, descriptor: focus.descriptor, dx: offset.dx, dy: offset.dy };
+        annotationOffsets.set(molecule.name, cached);
+      }
 
       drawAnnotation(gAnn, {
         x: bx,
         y: by,
-        dx: offset.dx,
-        dy: (referenceY + offset.dy) - by,
+        dx: cached.dx,
+        dy: (referenceY + cached.dy) - by,
         title: 'Changes the most',
         text: [
           focus.descriptor,
