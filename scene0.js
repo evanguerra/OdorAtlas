@@ -10,7 +10,6 @@ function buildDom(container) {
 
       <div class="intro-scene">
         <div>
-          <div class="intro-scene__eyebrow">Start here</div>
           <h1 class="intro-scene__title">Odor Space Atlas</h1>
           <p class="intro-scene__desc">
             This visualization explores the Arctander dataset which contains160 odor stimuli were rated by

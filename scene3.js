@@ -19,117 +19,6 @@ function fmt(n, digits = 2) {
   return typeof n === 'number' ? n.toFixed(digits) : n;
 }
 
-const LABEL_CHAR_WIDTH = 6.4;
-const LABEL_HEIGHT_ABOVE = 9;
-const LABEL_HEIGHT_BELOW = 4;
-const LABEL_COLLISION_PAD = 3;
-
-const LABEL_CANDIDATES = [
-  { dx: 10, dy: 4, side: 'right' },
-  { dx: 10, dy: -11, side: 'right' },
-  { dx: 10, dy: 19, side: 'right' },
-  { dx: -10, dy: 4, side: 'left' },
-  { dx: -10, dy: -11, side: 'left' },
-  { dx: -10, dy: 19, side: 'left' },
-  { dx: 10, dy: -24, side: 'right' },
-  { dx: -10, dy: -24, side: 'left' },
-  { dx: 10, dy: 32, side: 'right' },
-  { dx: -10, dy: 32, side: 'left' },
-];
-
-function estimateLabelWidth(text) {
-  return text.length * LABEL_CHAR_WIDTH + 6;
-}
-
-function segmentHitsRect(rect, x1, y1, x2, y2, steps = 24) {
-  for (let i = 1; i < steps; i++) {
-    const t = i / steps;
-    const px = x1 + (x2 - x1) * t;
-    const py = y1 + (y2 - y1) * t;
-    if (px >= rect.x0 && px <= rect.x1 && py >= rect.y0 && py <= rect.y1) return true;
-  }
-  return false;
-}
-
-function rectsOverlap(a, b) {
-  return a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
-}
-
-function placeMoleculeLabels(molecules, x, y, innerW, innerH) {
-  const arrowSegments = molecules.map((m) => ({
-    cid: m.cid,
-    x1: x(m.low.pc1), y1: y(m.low.pc2),
-    x2: x(m.high.pc1), y2: y(m.high.pc2),
-  }));
-
-  const placedRects = [];
-
-  return molecules.map((m) => {
-    const anchorX = x(m.high.pc1);
-    const anchorY = y(m.high.pc2);
-    const width = estimateLabelWidth(m.name);
-
-    let chosen = null;
-    let fallback = null;
-    let fallbackCollisions = Infinity;
-
-    for (const cand of LABEL_CANDIDATES) {
-      const textX = anchorX + cand.dx;
-      const textY = anchorY + cand.dy;
-      const rect = cand.side === 'right'
-        ? { x0: textX, y0: textY - LABEL_HEIGHT_ABOVE, x1: textX + width, y1: textY + LABEL_HEIGHT_BELOW }
-        : { x0: textX - width, y0: textY - LABEL_HEIGHT_ABOVE, x1: textX, y1: textY + LABEL_HEIGHT_BELOW };
-
-      if (rect.x0 < -4 || rect.x1 > innerW + 4 || rect.y0 < -4 || rect.y1 > innerH + 4) continue;
-
-      const padded = {
-        x0: rect.x0 - LABEL_COLLISION_PAD, y0: rect.y0 - LABEL_COLLISION_PAD,
-        x1: rect.x1 + LABEL_COLLISION_PAD, y1: rect.y1 + LABEL_COLLISION_PAD,
-      };
-
-      let collisions = 0;
-      arrowSegments.forEach((seg) => {
-        if (seg.cid === m.cid) return;
-        if (segmentHitsRect(padded, seg.x1, seg.y1, seg.x2, seg.y2)) collisions += 1;
-      });
-      placedRects.forEach((r) => {
-        if (rectsOverlap(padded, r)) collisions += 1;
-      });
-
-      const placement = { textX, textY, rect, side: cand.side };
-      if (collisions === 0) {
-        chosen = placement;
-        break;
-      }
-      if (collisions < fallbackCollisions) {
-        fallbackCollisions = collisions;
-        fallback = placement;
-      }
-    }
-
-    const placement = chosen || fallback || {
-      textX: anchorX + 10,
-      textY: anchorY + 4,
-      rect: { x0: anchorX + 10, y0: anchorY - LABEL_HEIGHT_ABOVE, x1: anchorX + 10 + width, y1: anchorY + LABEL_HEIGHT_BELOW },
-      side: 'right',
-    };
-
-    placedRects.push(placement.rect);
-
-    return {
-      cid: m.cid,
-      name: m.name,
-      color: m.color,
-      anchorX,
-      anchorY,
-      x: placement.textX,
-      y: placement.textY,
-      side: placement.side,
-      rect: placement.rect,
-    };
-  });
-}
-
 function buildDom(container) {
   container.innerHTML = `
     <div class="scene" id="scene3">
@@ -431,34 +320,6 @@ function init(container, { onNext, onPrev, onSelectMolecule } = {}) {
       })
       .on('click', (event, d) => selectMolecule(d.molecule));
 
-    const labelData = placeMoleculeLabels(molecules, x, y, innerW, innerH);
-
-    const labelGroups = gPoints.selectAll('g.molecule-label-group')
-      .data(labelData, (d) => d.cid);
-
-    labelGroups.exit().remove();
-
-    const labelGroupsEnter = labelGroups.enter()
-      .append('g')
-      .attr('class', 'molecule-label-group');
-
-    labelGroupsEnter.append('line').attr('class', 'molecule-label-leader');
-    labelGroupsEnter.append('text').attr('class', 'molecule-label');
-
-    const labelGroupsMerged = labelGroupsEnter.merge(labelGroups);
-
-    labelGroupsMerged.select('line.molecule-label-leader')
-      .attr('x1', (d) => d.anchorX).attr('y1', (d) => d.anchorY)
-      .attr('x2', (d) => d.x).attr('y2', (d) => d.y)
-      .attr('stroke', (d) => d.color);
-
-    labelGroupsMerged.select('text.molecule-label')
-      .attr('x', (d) => d.x)
-      .attr('y', (d) => d.y)
-      .attr('text-anchor', (d) => (d.side === 'left' ? 'end' : 'start'))
-      .attr('fill', (d) => d.color)
-      .text((d) => d.name);
-
     gAnnotations.attr('transform', `translate(${margin.left},${margin.top})`);
     const focus = molecules.reduce(
       (best, m) => (!best || (m.shiftMagnitude ?? 0) > (best.shiftMagnitude ?? 0) ? m : best),
@@ -474,11 +335,6 @@ function init(container, { onNext, onPrev, onSelectMolecule } = {}) {
           y: y(d.point.pc2),
           r: radiusScale(d.point.mean_intensity),
           stimulus: d.point.stimulus,
-        })),
-        ...labelData.map((d) => ({
-          x: (d.rect.x0 + d.rect.x1) / 2,
-          y: (d.rect.y0 + d.rect.y1) / 2,
-          r: Math.max(d.rect.x1 - d.rect.x0, d.rect.y1 - d.rect.y0) / 2,
         })),
       ].filter((p) => p.stimulus !== focus.high.stimulus);
       const offset = pickAnnotationOffset({
