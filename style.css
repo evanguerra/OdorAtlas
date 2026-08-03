@@ -319,7 +319,6 @@ button { font-family: inherit; }
   background: var(--ink-soft);
 }
 
-/* toggle */
 .toggle-row {
   display: flex;
   align-items: center;
