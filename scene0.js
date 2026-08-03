@@ -24,9 +24,7 @@ function buildDom(container) {
           <div class="intro-card">
             <p class="intro-card__label">Getting around</p>
             <p>
-              Use the <strong>Next / Back</strong> buttons or the
-              <span class="intro-kbd">&larr;</span> <span class="intro-kbd">&rarr;</span>
-              arrow keys to move between the four scenes. The dots at the
+              Use the <strong>Next / Back</strong> buttons to move between the four scenes. The dots at the
               bottom show where you are.
             </p>
           </div>
@@ -56,8 +54,7 @@ function buildDom(container) {
             <p>
               In the third scene, clicking any molecule's line or its point
               in the legend opens a drill-down look at that molecule.
-              From there, use the <strong>Back to atlas</strong> link (or
-              press <span class="intro-kbd">Esc</span>) to return to exactly
+              From there, use the <strong>Back to atlas</strong> link to return to exactly
               where you left off.
             </p>
           </div>

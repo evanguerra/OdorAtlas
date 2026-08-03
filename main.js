@@ -43,14 +43,6 @@ function destroyActive() {
   root.innerHTML = '';
 }
 
-function showErrorScene(err) {
-  console.error(`Scene "${activeScene && activeScene.id}" failed to initialize:`, err);
-  root.innerHTML = `
-    <div class="placeholder-scene">
-      <h2>Scene didn't load</h2>
-    </div>`;
-}
-
 function renderScene(index) {
   destroyActive();
   mode = 'primary';
@@ -58,20 +50,16 @@ function renderScene(index) {
   lastPrimaryIndex = index;
   activeScene = primaryScenes[current];
 
-  try {
-    activeScene.init(root, { onNext: goNext, onPrev: goPrev, onSelectMolecule: goToDetail });
-  } catch (err) {
-    showErrorScene(err);
-  }
+  activeScene.init(root, { onNext: goNext, onPrev: goPrev, onSelectMolecule: goToDetail });
 
   prevBtn.disabled = current === 0;
-  prevBtn.textContent = '← Back';
+  prevBtn.textContent = 'Back';
   nextBtn.style.display = '';
   if (current === primaryScenes.length - 1) {
-    nextBtn.textContent = 'Restart ↺';
+    nextBtn.textContent = 'Restart';
   } else {
     const upNext = primaryScenes[current + 1];
-    nextBtn.textContent = `Next: ${upNext.shortTitle || 'Continue'} →`;
+    nextBtn.textContent = `Next: ${upNext.shortTitle || 'Continue'}`;
   }
   progressEl.textContent = `${pad(current + 1)} / ${pad(primaryScenes.length)}`;
   dotsEl.style.display = '';
@@ -83,11 +71,7 @@ function renderDetail(molecule) {
   mode = 'detail';
   activeScene = scene4;
 
-  try {
-    activeScene.init(root, { onBack: goBackToPrimary, molecule });
-  } catch (err) {
-    showErrorScene(err);
-  }
+  activeScene.init(root, { onBack: goBackToPrimary, molecule });
 
   prevBtn.disabled = false;
   prevBtn.textContent = 'Back to atlas';
@@ -123,12 +107,6 @@ function goPrev() {
 
 prevBtn.addEventListener('click', goPrev);
 nextBtn.addEventListener('click', goNext);
-
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowRight') goNext();
-  if (e.key === 'ArrowLeft') goPrev();
-  if (e.key === 'Escape' && mode === 'detail') goBackToPrimary();
-});
 
 buildDots();
 renderScene(0);
