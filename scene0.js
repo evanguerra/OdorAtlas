@@ -12,7 +12,7 @@ function buildDom(container) {
         <div>
           <h1 class="intro-scene__title">Odor Space Atlas</h1>
           <p class="intro-scene__desc">
-            This visualization explores the Arctander dataset which contains160 odor stimuli were rated by
+            This visualization explores the Arctander dataset which contains 160 odor stimuli that were rated by
             panelists across 146 descriptors for example "floral," "sour," or "musty". This visualization walks through
             what those ratings look like when reduced to a 2D map, how individual descriptors shift with concentration,
             and how a handful of molecules move through that space as they get stronger. It's a short,
